@@ -44,7 +44,7 @@ value_to_color_name (guint32 value)
     case 0:
         return "Grey";
     case 2:
-        return "Brown";
+        return "LightGrey";
     case 4:
         return "Lime";
     case 8:
