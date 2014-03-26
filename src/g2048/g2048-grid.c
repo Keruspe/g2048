@@ -126,13 +126,20 @@ g_2048_grid_handle_vertical (G2048Grid *self,
             g_2048_tile_set_value (tile, val*2);
             g_2048_tile_set_value (next, 0);
             ++priv->empty;
-            for (gsize rr = row + (2 * delta); _cmp (rr, end, reverse); rr += delta)
+            for (gsize rr = row + (2 * delta); _cmp_eq (rr, end, reverse); rr += delta)
             {
                 tile = next;
                 next = G_2048_TILE (gtk_grid_get_child_at (grid, col, rr));
                 val = g_2048_tile_get_value (next);
-                if (!val)
-                    break;
+                if (_cmp (rr + delta, end, reverse))
+                {
+                    G2048Tile *_next = G_2048_TILE (gtk_grid_get_child_at (grid, col, rr + delta));
+                    if (g_2048_tile_get_value (_next) == val)
+                    {
+                        val *= 2;
+                        g_2048_tile_set_value (_next, 0);
+                    }
+                }
                 g_2048_tile_set_value (tile, val);
                 g_2048_tile_set_value (next, 0);
             }
@@ -191,13 +198,20 @@ g_2048_grid_handle_horizontal (G2048Grid *self,
             g_2048_tile_set_value (tile, val*2);
             g_2048_tile_set_value (next, 0);
             ++priv->empty;
-            for (gsize cc = col + (2 * delta); _cmp (cc, end, reverse); cc += delta)
+            for (gsize cc = col + (2 * delta); _cmp_eq (cc, end, reverse); cc += delta)
             {
                 tile = next;
                 next = G_2048_TILE (gtk_grid_get_child_at (grid, cc, row));
                 val = g_2048_tile_get_value (next);
-                if (!val)
-                    break;
+                if (_cmp (cc + delta, end, reverse))
+                {
+                    G2048Tile *_next = G_2048_TILE (gtk_grid_get_child_at (grid, cc + delta, row));
+                    if (g_2048_tile_get_value (_next) == val)
+                    {
+                        val *= 2;
+                        g_2048_tile_set_value (_next, 0);
+                    }
+                }
                 g_2048_tile_set_value (tile, val);
                 g_2048_tile_set_value (next, 0);
             }
