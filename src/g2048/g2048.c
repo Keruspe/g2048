@@ -25,9 +25,6 @@ static GtkWidget *
 _gtk_label_new (void)
 {
     GtkWidget *label = gtk_widget_new (GTK_TYPE_LABEL,
-                                       "label",          "2048",
-                                       "xalign",         0.5,
-                                       "yalign",         0.5,
                                        "height-request", 100,
                                        "width-request",  100,
                                        NULL);
@@ -58,6 +55,67 @@ _gtk_grid_init (GtkGrid *grid,
 {
     for (gsize s = 0; s < size; ++s)
         _gtk_grid_add_row (grid, s, size);
+}
+
+static gboolean
+on_up (GtkGrid *grid)
+{
+    g_debug ("up");
+    return FALSE;
+}
+
+static gboolean
+on_down (GtkGrid *grid)
+{
+    g_debug ("down");
+    return FALSE;
+}
+
+static gboolean
+on_left (GtkGrid *grid)
+{
+    g_debug ("left");
+    return FALSE;
+}
+
+static gboolean
+on_right (GtkGrid *grid)
+{
+    g_debug ("right");
+    return FALSE;
+}
+
+static gboolean
+on_key (GtkWidget   *widget,
+        GdkEventKey *event)
+{
+    GtkGrid *grid = GTK_GRID (gtk_bin_get_child (GTK_BIN (widget)));
+    gboolean won = FALSE;
+
+    switch (event->keyval)
+    {
+    case GDK_KEY_Up:
+        won = on_up (grid);
+        break;
+    case GDK_KEY_Down:
+        won = on_down (grid);
+        break;
+    case GDK_KEY_Left:
+        won = on_left (grid);
+        break;
+    case GDK_KEY_Right:
+        won = on_right (grid);
+        break;
+    };
+
+    if (won)
+    {
+        // TODO
+    }
+
+    // Add random tile
+
+    return FALSE;
 }
 
 gint
@@ -102,6 +160,7 @@ main (gint argc, gchar *argv[])
                                      NULL);
     gtk_container_add (GTK_CONTAINER (win), grid);
     gtk_widget_show_all (win);
+    GTK_WIDGET_GET_CLASS (win)->key_press_event = on_key;
 
     return g_application_run (gapp, argc, argv);
 }
