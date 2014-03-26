@@ -42,7 +42,8 @@ GType g_2048_grid_get_type (void);
 gboolean g_2048_grid_on_key (G2048Grid *self,
                              guint32    key);
 
-gboolean g_2048_grid_is_full (const G2048Grid *self);
+gboolean g_2048_grid_is_won  (const G2048Grid *self);
+gboolean g_2048_grid_is_lost (const G2048Grid *self);
 
 GtkWidget *g_2048_grid_new (gsize     size,
                             GtkLabel *score_label);

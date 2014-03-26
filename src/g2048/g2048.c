@@ -50,14 +50,14 @@ on_key (GtkWidget   *widget,
     case GDK_KEY_Down:
     case GDK_KEY_Left:
     case GDK_KEY_Right:
-        if (g_2048_grid_on_key (grid, event->keyval))
+        if (g_2048_grid_on_key (grid, event->keyval) && g_2048_grid_is_won (grid))
             end (widget, "You win");
         break;
     default:
         return FALSE;
     };
 
-    if (g_2048_grid_is_full (grid))
+    if (g_2048_grid_is_lost (grid))
         end (widget, "You lose");
 
     return FALSE;

@@ -110,7 +110,7 @@ g_2048_grid_replace_by_non_empty (GtkGrid   *grid,
     return FALSE;
 }
 
-static void
+static gboolean
 g_2048_grid_stack (GtkGrid *grid,
                    gsize    nb,
                    gsize    begin,
@@ -119,15 +119,23 @@ g_2048_grid_stack (GtkGrid *grid,
                    gboolean reverse,
                    gboolean vertical)
 {
+    gboolean did_something = FALSE;
+
     for (gsize line = begin; _cmp_eq (line, end, reverse); line += delta)
     {
         gsize col = (vertical) ? nb : line;
         gsize row = (vertical) ? line : nb;
         G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
-        if (!g_2048_tile_get_value (tile) &&
-            !g_2048_grid_replace_by_non_empty (grid, tile, col, row, end, delta, reverse, vertical))
+        if (!g_2048_tile_get_value (tile))
+        {
+            if (g_2048_grid_replace_by_non_empty (grid, tile, col, row, end, delta, reverse, vertical))
+                did_something = TRUE;
+            else
                 break;
+        }
     }
+
+    return did_something;
 }
 
 static void
@@ -151,7 +159,7 @@ g_2048_grid_post_merge (G2048GridPrivate *priv,
                         gboolean          reverse,
                         gboolean          vertical)
 {
-    gboolean found = FALSE;
+    gboolean did_something = FALSE;
 
     for (gsize ll = ((vertical) ? row : col) + (2 * delta); _cmp_eq (ll, end, reverse); ll += delta)
     {
@@ -162,7 +170,7 @@ g_2048_grid_post_merge (G2048GridPrivate *priv,
         guint32 val = g_2048_tile_get_value (next);
         if (val)
         {
-            found = TRUE;
+            did_something = TRUE;
             if (_cmp (ll + delta, end, reverse))
             {
                 col = (vertical) ? col : (ll + delta);
@@ -180,10 +188,10 @@ g_2048_grid_post_merge (G2048GridPrivate *priv,
         g_2048_tile_set_value (next, 0);
     }
 
-    return found;
+    return did_something;
 }
 
-static void
+static gboolean
 g_2048_grid_private_merge (G2048GridPrivate *priv,
                            GtkGrid          *grid,
                            gsize             nb,
@@ -193,6 +201,8 @@ g_2048_grid_private_merge (G2048GridPrivate *priv,
                            gboolean          reverse,
                            gboolean          vertical)
 {
+    gboolean did_something = FALSE;
+
     for (gsize line = begin; _cmp (line, end, reverse); line += delta)
     {
         gsize col = (vertical) ? nb : line;
@@ -206,6 +216,7 @@ g_2048_grid_private_merge (G2048GridPrivate *priv,
         G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, ncol, nrow));
         if (val != g_2048_tile_get_value (next))
             continue;
+        did_something = TRUE;
         if (val == 1024)
             priv->won = TRUE;
         val *= 2;
@@ -216,6 +227,8 @@ g_2048_grid_private_merge (G2048GridPrivate *priv,
         if (!g_2048_grid_post_merge (priv, grid, next, row, col, end, delta, reverse, vertical))
             break;
     }
+
+    return did_something;
 }
 
 static gboolean
@@ -228,18 +241,19 @@ g_2048_grid_handle (G2048Grid *self,
     gsize begin = (reverse) ? 0 : priv->size - 1;
     gsize end = (reverse) ? priv->size - 1 : 0;
     gsize delta = (reverse) ? 1 : -1;
+    gboolean did_something = FALSE;
 
     for (gsize line = begin; _cmp_eq (line, end, reverse); line += delta)
     {
         /* Stack everything */
-        g_2048_grid_stack (grid, line, begin, end, delta, reverse, vertical);
+        did_something = g_2048_grid_stack (grid, line, begin, end, delta, reverse, vertical) || did_something;
         /* Merge what is mergeable */
-        g_2048_grid_private_merge (priv, grid, line, begin, end, delta, reverse, vertical);
+        did_something = g_2048_grid_private_merge (priv, grid, line, begin, end, delta, reverse, vertical) || did_something;
         if (priv->won)
             return TRUE;
     }
 
-    return FALSE;
+    return did_something;
 }
 
 G_2048_VISIBLE gboolean
@@ -249,34 +263,43 @@ g_2048_grid_on_key (G2048Grid *self,
     g_return_val_if_fail (G_2048_IS_GRID (self), FALSE);
 
     gboolean reverse = FALSE;
-    gboolean ret = FALSE;
+    gboolean did_something = FALSE;
 
     switch (key)
     {
     case GDK_KEY_Up:
         reverse = TRUE;
     case GDK_KEY_Down:
-        ret = g_2048_grid_handle (self, reverse, TRUE);
+        did_something = g_2048_grid_handle (self, reverse, TRUE);
         break;
     case GDK_KEY_Left:
         reverse = TRUE;
     case GDK_KEY_Right:
-        ret = g_2048_grid_handle (self, reverse, FALSE);
+        did_something = g_2048_grid_handle (self, reverse, FALSE);
         break;
     default:
         g_assert_not_reached ();
     }
 
-    g_2048_grid_add_random_tile (self);
-    return ret;
+    if (did_something)
+        g_2048_grid_add_random_tile (self);
+    return did_something;
 }
 
 G_2048_VISIBLE gboolean
-g_2048_grid_is_full (const G2048Grid *self)
+g_2048_grid_is_lost (const G2048Grid *self)
 {
     g_return_val_if_fail (G_2048_IS_GRID (self), TRUE);
     G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
     return !priv->empty;
+}
+
+G_2048_VISIBLE gboolean
+g_2048_grid_is_won (const G2048Grid *self)
+{
+    g_return_val_if_fail (G_2048_IS_GRID (self), TRUE);
+    G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
+    return !priv->won;
 }
 
 static void
