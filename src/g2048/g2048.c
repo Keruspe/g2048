@@ -42,7 +42,7 @@ static gboolean
 on_key (GtkWidget   *widget,
         GdkEventKey *event)
 {
-    G2048Grid *grid = G_2048_GRID (gtk_bin_get_child (GTK_BIN (widget)));
+    G2048Grid *grid = G_2048_GRID (gtk_container_get_children (GTK_CONTAINER (gtk_bin_get_child (GTK_BIN (widget))))->data);
 
     switch (event->keyval)
     {
@@ -87,13 +87,32 @@ main (gint argc, gchar *argv[])
         return EXIT_SUCCESS;
     }
 
+    GtkWidget *score_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
+    GtkBox *hbox = GTK_BOX (score_box);
+    gtk_box_pack_start (hbox, gtk_label_new ("Score:"), TRUE, TRUE, 0);
+
+    GtkWidget *score_label = gtk_label_new ("0");
+    GtkLabel *label = GTK_LABEL (score_label);
+    GdkRGBA color;
+    gdk_rgba_parse (&color, "white");
+    gtk_widget_override_background_color (score_label, GTK_STATE_FLAG_NORMAL, &color);
+    gdk_rgba_parse (&color, "black");
+    gtk_widget_override_color (score_label, GTK_STATE_FLAG_NORMAL, &color);
+    gtk_label_set_width_chars (GTK_LABEL (score_label), 8);
+    gtk_box_pack_end (hbox, score_label, TRUE, FALSE, 0);
+
+    GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+    GtkBox *vbox = GTK_BOX (box);
+    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, label), TRUE, TRUE, 0);
+    gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
+
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
                                      "application",     app,
                                      "type",            GTK_WINDOW_TOPLEVEL,
                                      "window-position", GTK_WIN_POS_CENTER,
                                      "resizable",       FALSE,
                                      NULL);
-    gtk_container_add (GTK_CONTAINER (win), g_2048_grid_new (SIZE));
+    gtk_container_add (GTK_CONTAINER (win), box);
     gtk_widget_show_all (win);
     GTK_WIDGET_GET_CLASS (win)->key_press_event = on_key;
 
