@@ -21,6 +21,10 @@
 
 #include <stdlib.h>
 
+#define SIZE 4
+
+static guint empty;
+
 static GtkWidget *
 _gtk_label_new (void)
 {
@@ -55,6 +59,28 @@ _gtk_grid_init (GtkGrid *grid,
 {
     for (gsize s = 0; s < size; ++s)
         _gtk_grid_add_row (grid, s, size);
+    empty = size * size;
+}
+
+static void
+add_random_tile (GtkGrid *grid)
+{
+    gint32 r = g_random_int_range (0, empty);
+    gchar txt[] = "0";
+    txt[0] = ((g_random_int_range (0, 99) > 90) ? '4' : '2');
+    for (gsize s = 0; s < SIZE; ++s)
+    {
+        for (gsize ss = 0; ss < SIZE; ++ss)
+        {
+            GtkLabel *label = GTK_LABEL (gtk_grid_get_child_at (grid, ss, s));
+            if (!g_strcmp0 ("", gtk_label_get_text (label)) && !(r--))
+            {
+                gtk_label_set_text (label, txt);
+                --empty;
+                return;
+            }
+        }
+    }
 }
 
 static gboolean
@@ -106,14 +132,23 @@ on_key (GtkWidget   *widget,
     case GDK_KEY_Right:
         won = on_right (grid);
         break;
+    default:
+        return FALSE;
     };
 
     if (won)
     {
-        // TODO
+        printf ("You win");
+        exit (EXIT_SUCCESS);
     }
 
-    // Add random tile
+    if (!empty)
+    {
+        printf ("You lose");
+        exit (EXIT_SUCCESS);
+    }
+
+    add_random_tile (grid);
 
     return FALSE;
 }
@@ -150,7 +185,7 @@ main (gint argc, gchar *argv[])
                                       "border-width",       15,
                                       NULL);
     GtkGrid *g = GTK_GRID (grid);
-    _gtk_grid_init (g, 4);
+    _gtk_grid_init (g, SIZE);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
                                      "application",     app,
@@ -161,6 +196,9 @@ main (gint argc, gchar *argv[])
     gtk_container_add (GTK_CONTAINER (win), grid);
     gtk_widget_show_all (win);
     GTK_WIDGET_GET_CLASS (win)->key_press_event = on_key;
+
+    add_random_tile (g);
+    add_random_tile (g);
 
     return g_application_run (gapp, argc, argv);
 }
