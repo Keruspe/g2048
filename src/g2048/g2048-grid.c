@@ -291,7 +291,35 @@ g_2048_grid_is_lost (const G2048Grid *self)
 {
     g_return_val_if_fail (G_2048_IS_GRID (self), TRUE);
     G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
-    return !priv->empty;
+    GtkGrid *grid = GTK_GRID (self);
+
+    if (priv->empty)
+        return FALSE;
+
+    for (gsize col = 0; col < priv->size; ++col)
+    {
+        for (gsize row = 0; row < priv->size; ++row)
+        {
+            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+            guint32 val = g_2048_tile_get_value (tile);
+            if (!val)
+                continue;
+            if (col + 1 < priv->size)
+            {
+                G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col + 1, row));
+                if (val == g_2048_tile_get_value (next))
+                    return FALSE;
+            }
+            if (row + 1 < priv->size)
+            {
+                G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col, row + 1));
+                if (val == g_2048_tile_get_value (next))
+                    return FALSE;
+            }
+        }
+    }
+
+    return TRUE;
 }
 
 G_2048_VISIBLE gboolean
