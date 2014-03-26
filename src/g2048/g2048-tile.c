@@ -52,7 +52,7 @@ value_to_color_name (guint32 value)
     case 16:
         return "Orange";
     case 32:
-        return "LightPink";
+        return "Maroon";
     case 64:
         return "Pink";
     case 128:
@@ -117,6 +117,10 @@ g_2048_tile_init (G2048Tile *self)
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
 
     priv->value = 0;
+
+    GdkRGBA color;
+    gdk_rgba_parse (&color, "black");
+    gtk_widget_override_color (GTK_WIDGET (self), GTK_STATE_FLAG_NORMAL, &color);
 }
 
 G_2048_VISIBLE GtkWidget *

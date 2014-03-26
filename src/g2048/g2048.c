@@ -37,8 +37,8 @@ on_key (GtkWidget   *widget,
     case GDK_KEY_Right:
         if (g_2048_grid_on_key (grid, event->keyval))
         {
-            printf ("You win");
-            exit (EXIT_SUCCESS);
+            printf ("You win\n");
+            //exit (EXIT_SUCCESS);
         }
         break;
     default:
@@ -47,7 +47,7 @@ on_key (GtkWidget   *widget,
 
     if (g_2048_grid_is_full (grid))
     {
-        printf ("You lose");
+        printf ("You lose\n");
         exit (EXIT_SUCCESS);
     }
 
