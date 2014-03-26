@@ -17,7 +17,7 @@
  *      along with g2048.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <g2048-grid.h>
+#include "g2048-grid.h"
 
 struct _G2048Grid
 {

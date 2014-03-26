@@ -17,7 +17,7 @@
  *      along with g2048.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <g2048-tile.h>
+#include "g2048-tile.h"
 
 struct _G2048Tile
 {

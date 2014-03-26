@@ -38,6 +38,7 @@ AM_LIBS =            \
 EXTRA_DIST =       \
 	autogen.sh \
 	README.md  \
+	NEWS       \
 	$(NULL)
 
 CLEANFILES =
