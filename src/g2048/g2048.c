@@ -23,6 +23,21 @@
 
 #define SIZE 4
 
+static void
+end (GtkWidget   *win,
+     const gchar *msg)
+{
+    GTK_WIDGET_GET_CLASS (win)->key_press_event = NULL;
+    GtkWidget *dialog = gtk_message_dialog_new (GTK_WINDOW (win),
+                                                GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+                                                GTK_MESSAGE_INFO,
+                                                GTK_BUTTONS_OK,
+                                                "%s", msg);
+    gtk_dialog_run (GTK_DIALOG (dialog));
+    gtk_widget_destroy (dialog);
+    exit (EXIT_SUCCESS);
+}
+
 static gboolean
 on_key (GtkWidget   *widget,
         GdkEventKey *event)
@@ -36,20 +51,14 @@ on_key (GtkWidget   *widget,
     case GDK_KEY_Left:
     case GDK_KEY_Right:
         if (g_2048_grid_on_key (grid, event->keyval))
-        {
-            printf ("You win\n");
-            //exit (EXIT_SUCCESS);
-        }
+            end (widget, "You win");
         break;
     default:
         return FALSE;
     };
 
     if (g_2048_grid_is_full (grid))
-    {
-        printf ("You lose\n");
-        exit (EXIT_SUCCESS);
-    }
+        end (widget, "You lose");
 
     return FALSE;
 }
