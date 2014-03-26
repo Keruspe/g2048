@@ -114,6 +114,7 @@ main (gint argc, gchar *argv[])
                                      NULL);
     gtk_container_add (GTK_CONTAINER (win), box);
     gtk_widget_show_all (win);
+    gtk_widget_override_font (win, pango_font_description_from_string("Monospace 18"));
     GTK_WIDGET_GET_CLASS (win)->key_press_event = on_key;
 
     return g_application_run (gapp, argc, argv);

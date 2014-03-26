@@ -115,14 +115,12 @@ static void
 g_2048_tile_init (G2048Tile *self)
 {
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
-    GtkWidget *widget = GTK_WIDGET (self);
 
     priv->value = 0;
 
     GdkRGBA color;
     gdk_rgba_parse (&color, "black");
-    gtk_widget_override_color (widget, GTK_STATE_FLAG_NORMAL, &color);
-    gtk_widget_override_font (widget, pango_font_description_from_string("Monospace 18"));
+    gtk_widget_override_color (GTK_WIDGET (self), GTK_STATE_FLAG_NORMAL, &color);
 }
 
 G_2048_VISIBLE GtkWidget *
