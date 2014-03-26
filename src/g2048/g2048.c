@@ -23,7 +23,7 @@
 
 #define SIZE 4
 
-static void
+__attribute__((noreturn)) static void
 end (GtkWidget   *win,
      const gchar *msg)
 {

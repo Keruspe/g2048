@@ -87,10 +87,8 @@ g_2048_tile_update (G2048Tile *self)
 G_2048_VISIBLE guint32
 g_2048_tile_get_value (const G2048Tile *self)
 {
-    g_return_if_fail (G_2048_IS_TILE (self));
-
+    g_return_val_if_fail (G_2048_IS_TILE (self), 0);
     G2048TilePrivate *priv = g_2048_tile_get_instance_private ((G2048Tile *) self);
-
     return priv->value;
 }
 
