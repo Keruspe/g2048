@@ -80,145 +80,149 @@ _cmp_eq (gsize    a,
 }
 
 static gboolean
-g_2048_grid_handle_vertical (G2048Grid *self,
-                             gboolean   reverse)
+g_2048_grid_replace_by_non_empty (GtkGrid   *grid,
+                                  G2048Tile *tile,
+                                  gsize      col,
+                                  gsize      row,
+                                  gsize      end,
+                                  gsize      delta,
+                                  gboolean   reverse,
+                                  gboolean   vertical)
 {
-    G2048GridPrivate *priv = g_2048_grid_get_instance_private (self);
-    GtkGrid *grid = GTK_GRID (self);
-    gsize begin = (reverse) ? 0 : priv->size - 1;
-    gsize end = (reverse) ? priv->size - 1 : 0;
-    gsize delta = (reverse) ? 1 : -1;
+    for (gsize ll = ((vertical) ? row : col) + delta; _cmp_eq (ll, end, reverse); ll += delta)
+    {
+        col = (vertical) ? col : ll;
+        row = (vertical) ? ll : row;
+        G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+        guint32 val = g_2048_tile_get_value (next);
+        if (val)
+        {
+            g_2048_tile_set_value (tile, val);
+            g_2048_tile_set_value (next, 0);
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static void
+g_2048_grid_stack (GtkGrid *grid,
+                   gsize    nb,
+                   gsize    begin,
+                   gsize    end,
+                   gsize    delta,
+                   gboolean reverse,
+                   gboolean vertical)
+{
+    for (gsize line = begin; _cmp_eq (line, end, reverse); line += delta)
+    {
+        gsize col = (vertical) ? nb : line;
+        gsize row = (vertical) ? line : nb;
+        G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+        if (!g_2048_tile_get_value (tile) &&
+            !g_2048_grid_replace_by_non_empty (grid, tile, col, row, end, delta, reverse, vertical))
+                break;
+    }
+}
+
+static gboolean
+g_2048_grid_post_merge (GtkGrid   *grid,
+                        G2048Tile *next,
+                        gsize      row,
+                        gsize      col,
+                        gsize      end,
+                        gsize      delta,
+                        gboolean   reverse,
+                        gboolean   vertical)
+{
+    gboolean found = FALSE;
+
+    for (gsize ll = ((vertical) ? row : col) + (2 * delta); _cmp_eq (ll, end, reverse); ll += delta)
+    {
+        col = (vertical) ? col : ll;
+        row = (vertical) ? ll : row;
+        G2048Tile *tile = next;
+        next = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+        guint32 val = g_2048_tile_get_value (next);
+        if (val)
+        {
+            found = TRUE;
+            if (_cmp (ll + delta, end, reverse))
+            {
+                col = (vertical) ? col : (ll + delta);
+                row = (vertical) ? (ll + delta) : row;
+                G2048Tile *_next = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+                if (g_2048_tile_get_value (_next) == val)
+                {
+                    val *= 2;
+                    g_2048_tile_set_value (_next, 0);
+                }
+            }
+        }
+        g_2048_tile_set_value (tile, val);
+        g_2048_tile_set_value (next, 0);
+    }
+
+    return found;
+}
+
+static gboolean
+g_2048_grid_merge (GtkGrid *grid,
+                   guint32 *empty,
+                   gsize    nb,
+                   gsize    begin,
+                   gsize    end,
+                   gsize    delta,
+                   gboolean reverse,
+                   gboolean vertical)
+{
     gboolean ret = FALSE;
 
-    for (gsize col = begin; _cmp_eq (col, end, reverse); col += delta)
+    for (gsize line = begin; _cmp (line, end, reverse); line += delta)
     {
-        /* Stack everything */
-        for (gsize row = begin; _cmp_eq (row, end, reverse); row += delta)
-        {
-            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
-            guint32 val = g_2048_tile_get_value (tile);
-            if (val)
-                continue;
-            for (gsize rr = row + delta; _cmp_eq (rr, end, reverse); rr += delta)
-            {
-                G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col, rr));
-                val = g_2048_tile_get_value (next);
-                if (val)
-                {
-                    g_2048_tile_set_value (tile, val);
-                    g_2048_tile_set_value (next, 0);
-                    break;
-                }
-            }
-        }
-        /* Merge what is mergeable */
-        for (gsize row = begin; _cmp (row, end, reverse); row += delta)
-        {
-            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
-            guint32 val = g_2048_tile_get_value (tile);
-            if (!val)
-                break;
-            G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col, row + delta));
-            if (val != g_2048_tile_get_value (next))
-                continue;
-            if (val == 1024)
-                ret = TRUE;
-            g_2048_tile_set_value (tile, val*2);
-            g_2048_tile_set_value (next, 0);
-            ++priv->empty;
-            for (gsize rr = row + (2 * delta); _cmp_eq (rr, end, reverse); rr += delta)
-            {
-                tile = next;
-                next = G_2048_TILE (gtk_grid_get_child_at (grid, col, rr));
-                val = g_2048_tile_get_value (next);
-                if (_cmp (rr + delta, end, reverse))
-                {
-                    G2048Tile *_next = G_2048_TILE (gtk_grid_get_child_at (grid, col, rr + delta));
-                    if (g_2048_tile_get_value (_next) == val)
-                    {
-                        val *= 2;
-                        g_2048_tile_set_value (_next, 0);
-                    }
-                }
-                g_2048_tile_set_value (tile, val);
-                g_2048_tile_set_value (next, 0);
-            }
-        }
+        gsize col = (vertical) ? nb : line;
+        gsize row = (vertical) ? line : nb;
+        G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
+        guint32 val = g_2048_tile_get_value (tile);
+        if (!val)
+            break;
+        gsize ncol = (vertical) ? col : (col + delta);
+        gsize nrow = (vertical) ? (row + delta) : row;
+        G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, ncol, nrow));
+        if (val != g_2048_tile_get_value (next))
+            continue;
+        if (val == 1024)
+            ret = TRUE;
+        g_2048_tile_set_value (tile, val * 2);
+        g_2048_tile_set_value (next, 0);
+        ++(*empty);
+        if (!g_2048_grid_post_merge (grid, next, row, col, end, delta, reverse, vertical))
+            break;
     }
 
     return ret;
 }
 
-static gboolean
-g_2048_grid_handle_horizontal (G2048Grid *self,
-                               gboolean reverse)
+static gboolean g_2048_grid_handle (G2048Grid *self,
+                                    gboolean   reverse,
+                                    gboolean   vertical)
 {
     G2048GridPrivate *priv = g_2048_grid_get_instance_private (self);
     GtkGrid *grid = GTK_GRID (self);
     gsize begin = (reverse) ? 0 : priv->size - 1;
     gsize end = (reverse) ? priv->size - 1 : 0;
     gsize delta = (reverse) ? 1 : -1;
-    gboolean ret = FALSE;
 
-    for (gsize row = begin; _cmp_eq (row, end, reverse); row += delta)
+    for (gsize line = begin; _cmp_eq (line, end, reverse); line += delta)
     {
         /* Stack everything */
-        for (gsize col = begin; _cmp_eq (col, end, reverse); col += delta)
-        {
-            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
-            guint32 val = g_2048_tile_get_value (tile);
-            if (val)
-                continue;
-            for (gsize cc = col +delta; _cmp_eq (cc, end, reverse); cc += delta)
-            {
-                G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, cc, row));
-                val = g_2048_tile_get_value (next);
-                if (val)
-                {
-                    g_2048_tile_set_value (tile, val);
-                    g_2048_tile_set_value (next, 0);
-                    break;
-                }
-            }
-        }
+        g_2048_grid_stack (grid, line, begin, end, delta, reverse, vertical);
         /* Merge what is mergeable */
-        for (gsize col = begin; _cmp (col, end, reverse); col += delta)
-        {
-            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
-            guint32 val = g_2048_tile_get_value (tile);
-            if (!val)
-                break;
-            G2048Tile *next = G_2048_TILE (gtk_grid_get_child_at (grid, col + delta, row));
-            if (val != g_2048_tile_get_value (next))
-            {
-                continue;
-            }
-            if (val == 1024)
-                ret = TRUE;
-            g_2048_tile_set_value (tile, val*2);
-            g_2048_tile_set_value (next, 0);
-            ++priv->empty;
-            for (gsize cc = col + (2 * delta); _cmp_eq (cc, end, reverse); cc += delta)
-            {
-                tile = next;
-                next = G_2048_TILE (gtk_grid_get_child_at (grid, cc, row));
-                val = g_2048_tile_get_value (next);
-                if (_cmp (cc + delta, end, reverse))
-                {
-                    G2048Tile *_next = G_2048_TILE (gtk_grid_get_child_at (grid, cc + delta, row));
-                    if (g_2048_tile_get_value (_next) == val)
-                    {
-                        val *= 2;
-                        g_2048_tile_set_value (_next, 0);
-                    }
-                }
-                g_2048_tile_set_value (tile, val);
-                g_2048_tile_set_value (next, 0);
-            }
-        }
+        if (g_2048_grid_merge (grid, &priv->empty, line, begin, end, delta, reverse, vertical))
+            return TRUE;
     }
 
-    return ret;
+    return FALSE;
 }
 
 G_2048_VISIBLE gboolean
@@ -235,12 +239,12 @@ g_2048_grid_on_key (G2048Grid *self,
     case GDK_KEY_Up:
         reverse = TRUE;
     case GDK_KEY_Down:
-        ret = g_2048_grid_handle_vertical (self, reverse);
+        ret = g_2048_grid_handle (self, reverse, TRUE);
         break;
     case GDK_KEY_Left:
         reverse = TRUE;
     case GDK_KEY_Right:
-        ret = g_2048_grid_handle_horizontal (self, reverse);
+        ret = g_2048_grid_handle (self, reverse, FALSE);
         break;
     default:
         g_assert_not_reached ();
