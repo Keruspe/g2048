@@ -22,6 +22,8 @@ bin_PROGRAMS +=   \
 bin_g2048_SOURCES =            \
 	src/g2048/g2048-tile.h \
 	src/g2048/g2048-tile.c \
+	src/g2048/g2048-grid.h \
+	src/g2048/g2048-grid.c \
 	src/g2048/g2048.c      \
 	$(NULL)
 
