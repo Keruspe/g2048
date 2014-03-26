@@ -35,6 +35,7 @@ typedef struct
     guint32   empty;
 
     guint32   score;
+    gboolean  won;
 
     GtkLabel *score_label;
 } G2048GridPrivate;
@@ -130,27 +131,25 @@ g_2048_grid_stack (GtkGrid *grid,
 }
 
 static void
-g_2048_grid_update_score (GtkLabel *score_label,
-                          guint32  *score,
-                          guint32   points)
+g_2048_grid_private_update_score (G2048GridPrivate *priv,
+                                  guint32           score)
 {
-    *score += points;
-    gchar *txt = g_strdup_printf ("%u", *score);
-    gtk_label_set_text (score_label, txt);
+    priv->score += score;
+    gchar *txt = g_strdup_printf ("%u", priv->score);
+    gtk_label_set_text (priv->score_label, txt);
     g_free (txt);
 }
 
 static gboolean
-g_2048_grid_post_merge (GtkGrid   *grid,
-                        GtkLabel  *score_label,
-                        guint32   *score,
-                        G2048Tile *next,
-                        gsize      row,
-                        gsize      col,
-                        gsize      end,
-                        gsize      delta,
-                        gboolean   reverse,
-                        gboolean   vertical)
+g_2048_grid_post_merge (G2048GridPrivate *priv,
+                        GtkGrid          *grid,
+                        G2048Tile        *next,
+                        gsize             row,
+                        gsize             col,
+                        gsize             end,
+                        gsize             delta,
+                        gboolean          reverse,
+                        gboolean          vertical)
 {
     gboolean found = FALSE;
 
@@ -172,7 +171,7 @@ g_2048_grid_post_merge (GtkGrid   *grid,
                 if (g_2048_tile_get_value (_next) == val)
                 {
                     val *= 2;
-                    g_2048_grid_update_score (score_label, score, val);
+                    g_2048_grid_private_update_score (priv, val);
                     g_2048_tile_set_value (_next, 0);
                 }
             }
@@ -184,20 +183,16 @@ g_2048_grid_post_merge (GtkGrid   *grid,
     return found;
 }
 
-static gboolean
-g_2048_grid_merge (GtkGrid  *grid,
-                   GtkLabel *score_label,
-                   guint32  *score,
-                   guint32  *empty,
-                   gsize     nb,
-                   gsize     begin,
-                   gsize     end,
-                   gsize     delta,
-                   gboolean  reverse,
-                   gboolean  vertical)
+static void
+g_2048_grid_private_merge (G2048GridPrivate *priv,
+                           GtkGrid          *grid,
+                           gsize             nb,
+                           gsize             begin,
+                           gsize             end,
+                           gsize             delta,
+                           gboolean          reverse,
+                           gboolean          vertical)
 {
-    gboolean ret = FALSE;
-
     for (gsize line = begin; _cmp (line, end, reverse); line += delta)
     {
         gsize col = (vertical) ? nb : line;
@@ -212,22 +207,21 @@ g_2048_grid_merge (GtkGrid  *grid,
         if (val != g_2048_tile_get_value (next))
             continue;
         if (val == 1024)
-            ret = TRUE;
+            priv->won = TRUE;
         val *= 2;
         g_2048_tile_set_value (tile, val);
         g_2048_tile_set_value (next, 0);
-        g_2048_grid_update_score (score_label, score, val);
-        ++(*empty);
-        if (!g_2048_grid_post_merge (grid, score_label, score, next, row, col, end, delta, reverse, vertical))
+        g_2048_grid_private_update_score (priv, val);
+        ++priv->empty;
+        if (!g_2048_grid_post_merge (priv, grid, next, row, col, end, delta, reverse, vertical))
             break;
     }
-
-    return ret;
 }
 
-static gboolean g_2048_grid_handle (G2048Grid *self,
-                                    gboolean   reverse,
-                                    gboolean   vertical)
+static gboolean
+g_2048_grid_handle (G2048Grid *self,
+                    gboolean   reverse,
+                    gboolean   vertical)
 {
     G2048GridPrivate *priv = g_2048_grid_get_instance_private (self);
     GtkGrid *grid = GTK_GRID (self);
@@ -240,7 +234,8 @@ static gboolean g_2048_grid_handle (G2048Grid *self,
         /* Stack everything */
         g_2048_grid_stack (grid, line, begin, end, delta, reverse, vertical);
         /* Merge what is mergeable */
-        if (g_2048_grid_merge (grid, priv->score_label, &priv->score, &priv->empty, line, begin, end, delta, reverse, vertical))
+        g_2048_grid_private_merge (priv, grid, line, begin, end, delta, reverse, vertical);
+        if (priv->won)
             return TRUE;
     }
 
@@ -295,6 +290,8 @@ g_2048_grid_init (G2048Grid *self)
     G2048GridPrivate *priv = g_2048_grid_get_instance_private (self);
 
     priv->empty = 0;
+    priv->score = 0;
+    priv->won = FALSE;
 }
 
 G_2048_VISIBLE GtkWidget *
