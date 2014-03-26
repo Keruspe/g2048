@@ -17,7 +17,7 @@
  *      along with g2048.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtk.h>
+#include "g2048-tile.h"
 
 #include <stdlib.h>
 
@@ -25,30 +25,17 @@
 
 static guint empty;
 
-static GtkWidget *
-_gtk_label_new (void)
-{
-    GtkWidget *label = gtk_widget_new (GTK_TYPE_LABEL,
-                                       "height-request", 100,
-                                       "width-request",  100,
-                                       NULL);
-    GdkRGBA color;
-    gdk_rgba_parse (&color, "blue");
-    gtk_widget_override_background_color (label, GTK_STATE_FLAG_NORMAL, &color);
-    return label;
-}
-
 static void
 _gtk_grid_add_row (GtkGrid *grid,
                    guint    row_nb,
                    gsize    size)
 {
-    GtkWidget *label, *previous_label;
-    gtk_grid_attach (grid, (label = _gtk_label_new ()), 0, row_nb, 1, 1);
+    GtkWidget *tile, *previous_tile;
+    gtk_grid_attach (grid, (tile = g_2048_tile_new (0)), 0, row_nb, 1, 1);
     for (gsize s = 1; s < size; ++s)
     {
-        previous_label = label;
-        gtk_grid_attach_next_to (grid, (label = _gtk_label_new ()), previous_label, GTK_POS_RIGHT, 1, 1);
+        previous_tile = tile;
+        gtk_grid_attach_next_to (grid, (tile = g_2048_tile_new (0)), previous_tile, GTK_POS_RIGHT, 1, 1);
     }
 }
 
@@ -66,16 +53,15 @@ static void
 add_random_tile (GtkGrid *grid)
 {
     gint32 r = g_random_int_range (0, empty);
-    gchar txt[] = "0";
-    txt[0] = ((g_random_int_range (0, 99) > 90) ? '4' : '2');
+    guint32 val = ((g_random_int_range (0, 99) > 90) ? 4 : 2);
     for (gsize s = 0; s < SIZE; ++s)
     {
         for (gsize ss = 0; ss < SIZE; ++ss)
         {
-            GtkLabel *label = GTK_LABEL (gtk_grid_get_child_at (grid, ss, s));
-            if (!g_strcmp0 ("", gtk_label_get_text (label)) && !(r--))
+            G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, ss, s));
+            if (!g_2048_tile_get_value (tile) && !(r--))
             {
-                gtk_label_set_text (label, txt);
+                g_2048_tile_set_value (tile, val);
                 --empty;
                 return;
             }

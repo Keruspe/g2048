@@ -19,8 +19,10 @@ bin_PROGRAMS +=   \
 	bin/g2048 \
 	$(NULL)
 
-bin_g2048_SOURCES =       \
-	src/g2048/g2048.c \
+bin_g2048_SOURCES =            \
+	src/g2048/g2048-tile.h \
+	src/g2048/g2048-tile.c \
+	src/g2048/g2048.c      \
 	$(NULL)
 
 bin_g2048_LDADD =  \
