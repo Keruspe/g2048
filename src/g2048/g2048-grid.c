@@ -327,7 +327,7 @@ g_2048_grid_is_won (const G2048Grid *self)
 {
     g_return_val_if_fail (G_2048_IS_GRID (self), TRUE);
     G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
-    return !priv->won;
+    return priv->won;
 }
 
 static void
