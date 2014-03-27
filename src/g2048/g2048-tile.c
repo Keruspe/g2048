@@ -75,9 +75,14 @@ g_2048_tile_update (G2048Tile *self)
 {
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
 
-    gchar *txt = g_strdup_printf ("%u", priv->value);
-    gtk_label_set_text (GTK_LABEL (self), txt);
-    g_free (txt);
+    if (priv->value)
+    {
+        gchar *txt = g_strdup_printf ("%u", priv->value);
+        gtk_label_set_text (GTK_LABEL (self), txt);
+        g_free (txt);
+    }
+    else
+        gtk_label_set_text (GTK_LABEL (self), "");
 
     GdkRGBA color;
     gdk_rgba_parse (&color, value_to_color_name (priv->value));
