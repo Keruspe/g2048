@@ -16,7 +16,7 @@
 # along with g2048.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ([2.69])
-AC_INIT([g2048], [1], [Marc-Antoine@Perennou.com], [greminder])
+AC_INIT([g2048], [1], [Marc-Antoine@Perennou.com], [g2048])
 
 PKGCONFIG_REQUIRED="0.22"
 
