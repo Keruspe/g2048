@@ -128,10 +128,9 @@ g_2048_grid_stack (GtkGrid *grid,
         G2048Tile *tile = G_2048_TILE (gtk_grid_get_child_at (grid, col, row));
         if (!g_2048_tile_get_value (tile))
         {
-            if (g_2048_grid_replace_by_non_empty (grid, tile, col, row, end, delta, reverse, vertical))
-                did_something = TRUE;
-            else
+            if (!g_2048_grid_replace_by_non_empty (grid, tile, col, row, end, delta, reverse, vertical))
                 break;
+            did_something = TRUE;
         }
     }
 
@@ -183,9 +182,9 @@ g_2048_grid_post_merge (G2048GridPrivate *priv,
                     g_2048_tile_set_value (_next, 0);
                 }
             }
+            g_2048_tile_set_value (tile, val);
+            g_2048_tile_set_value (next, 0);
         }
-        g_2048_tile_set_value (tile, val);
-        g_2048_tile_set_value (next, 0);
     }
 
     return did_something;
