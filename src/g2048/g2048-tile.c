@@ -42,9 +42,8 @@ static void
 g_2048_tile_update (G2048Tile *self)
 {
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
-    gchar *file = g_strdup_printf ("%s/%u", priv->theme, priv->value);
+    G_2048_CLEANUP_FREE gchar *file = g_strdup_printf ("%s/%u", priv->theme, priv->value);
     gtk_image_set_from_file (GTK_IMAGE (self), file);
-    g_free (file);
 }
 
 G_2048_VISIBLE guint32

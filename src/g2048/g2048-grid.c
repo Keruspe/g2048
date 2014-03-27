@@ -145,9 +145,8 @@ g_2048_grid_private_update_score (G2048GridPrivate *priv,
     if (score >= priv->target)
         priv->won = TRUE;
     priv->score += score;
-    gchar *txt = g_strdup_printf ("%u", priv->score);
+    G_2048_CLEANUP_FREE gchar *txt = g_strdup_printf ("%u", priv->score);
     gtk_label_set_text (priv->score_label, txt);
-    g_free (txt);
 }
 
 static gboolean

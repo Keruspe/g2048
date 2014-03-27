@@ -75,12 +75,8 @@ show_win (GApplication *application)
 static gboolean
 path_exists (const gchar *path)
 {
-    gboolean ret = FALSE;
-    GFile *file = g_file_new_for_path (path);
-    if (g_file_query_exists (file, NULL))
-        ret = TRUE;
-    g_object_unref (file);
-    return ret;
+    G_2048_CLEANUP_UNREF GFile *file = g_file_new_for_path (path);
+    return g_file_query_exists (file, NULL);
 }
 
 static gchar *
@@ -113,22 +109,20 @@ main (gint argc, gchar *argv[])
         { "theme",  't',  0, G_OPTION_ARG_STRING, &theme,  "The theme to use",     DEFAULT_THEME },
         { NULL,     '\0', 0, G_OPTION_ARG_NONE,   NULL,    NULL,                   NULL          }
     };
-    GOptionContext *ctx = g_option_context_new ("foobar");
+    G_2048_CLEANUP_OPTIONS_FREE GOptionContext *ctx = g_option_context_new ("foobar");
     g_option_context_add_main_entries (ctx, options, NULL);
     g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
     g_option_context_parse (ctx, &argc, &argv, NULL);
-    g_option_context_free (ctx);
 
     GtkApplication *app = gtk_application_new ("org.gnome.g2048", G_APPLICATION_FLAGS_NONE);
     GApplication *gapp = G_APPLICATION (app);
-    GError *error = NULL;
+    G_2048_CLEANUP_ERROR_FREE GError *error = NULL;
     G_APPLICATION_GET_CLASS (gapp)->activate = show_win;
 
     g_application_register (gapp, NULL, &error);
     if (error)
     {
         fprintf (stderr, "Failed to register the gtk application: %s\n", error->message);
-        g_error_free (error);
         return EXIT_FAILURE;
     }
     if (g_application_get_is_remote (gapp))
@@ -137,7 +131,7 @@ main (gint argc, gchar *argv[])
         return EXIT_SUCCESS;
     }
 
-    gchar *theme_path = get_theme_path (theme);
+    G_2048_CLEANUP_FREE gchar *theme_path = get_theme_path (theme);
     if (!theme_path)
         theme_path = get_theme_path (DEFAULT_THEME);
     if (!theme_path)
@@ -164,8 +158,6 @@ main (gint argc, gchar *argv[])
     GtkBox *vbox = GTK_BOX (box);
     gtk_box_pack_start (vbox, g_2048_grid_new (size, target, theme_path, label), TRUE, TRUE, 0);
     gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
-
-    g_free (theme_path);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
                                      "application",     app,

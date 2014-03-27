@@ -20,11 +20,9 @@
 #ifndef __G_2048_TILE_H__
 #define __G_2048_TILE_H__
 
-#include <gtk/gtk.h>
+#include "g2048-macros.h"
 
 G_BEGIN_DECLS
-
-#define G_2048_VISIBLE __attribute__((visibility("default")))
 
 #define G_2048_TYPE_TILE            (g_2048_tile_get_type ())
 #define G_2048_TILE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_2048_TYPE_TILE, G2048Tile))
