@@ -112,6 +112,13 @@ main (gint argc, gchar *argv[])
     g_option_context_parse (ctx, &argc, &argv, NULL);
     g_option_context_free (ctx);
 
+    gchar *theme_dir_s = g_strdup_printf (DATADIR "/" PACKAGE_NAME "/themes/%s", theme);
+    GFile *theme_dir = g_file_new_for_path (theme_dir_s);
+    if (! g_file_query_exists (theme_dir, NULL))
+        theme = DEFAULT_THEME;
+    g_object_unref (theme_dir);
+    g_free (theme_dir_s);
+
     GtkWidget *score_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
     GtkBox *hbox = GTK_BOX (score_box);
     gtk_box_pack_start (hbox, gtk_label_new ("Score:"), TRUE, TRUE, 0);
