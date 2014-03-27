@@ -89,6 +89,8 @@ main (gint argc, gchar *argv[])
         return EXIT_SUCCESS;
     }
 
+    const gchar *theme = (argc > 1) ? argv[1] : THEME;
+
     GtkWidget *score_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
     GtkBox *hbox = GTK_BOX (score_box);
     gtk_box_pack_start (hbox, gtk_label_new ("Score:"), TRUE, TRUE, 0);
@@ -105,7 +107,7 @@ main (gint argc, gchar *argv[])
 
     GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     GtkBox *vbox = GTK_BOX (box);
-    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, TARGET, THEME, label), TRUE, TRUE, 0);
+    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, TARGET, theme, label), TRUE, TRUE, 0);
     gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
