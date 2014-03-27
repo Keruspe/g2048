@@ -35,9 +35,12 @@ typedef struct
     guint32   empty;
 
     guint32   score;
+    guint32   target;
     gboolean  won;
 
     GtkLabel *score_label;
+
+    gboolean  debug;
 } G2048GridPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (G2048Grid, g_2048_grid, GTK_TYPE_GRID)
@@ -141,6 +144,8 @@ static void
 g_2048_grid_private_update_score (G2048GridPrivate *priv,
                                   guint32           score)
 {
+    if (score >= priv->target)
+        priv->won = TRUE;
     priv->score += score;
     gchar *txt = g_strdup_printf ("%u", priv->score);
     gtk_label_set_text (priv->score_label, txt);
@@ -216,8 +221,6 @@ g_2048_grid_private_merge (G2048GridPrivate *priv,
         if (val != g_2048_tile_get_value (next))
             continue;
         did_something = TRUE;
-        if (val == 1024)
-            priv->won = TRUE;
         val *= 2;
         g_2048_tile_set_value (tile, val);
         g_2048_tile_set_value (next, 0);
@@ -341,12 +344,17 @@ g_2048_grid_init (G2048Grid *self)
 
     priv->empty = 0;
     priv->score = 0;
+    priv->target = 2048;
     priv->won = FALSE;
+
+    priv->debug = FALSE;
 }
 
 G_2048_VISIBLE GtkWidget *
 g_2048_grid_new (gsize     size,
-                 GtkLabel *score_label)
+                 guint32   target,
+                 GtkLabel *score_label,
+                 gboolean  debug)
 {
     GtkWidget *self = gtk_widget_new (G_2048_TYPE_GRID,
                                       "column-homogeneous", TRUE,
@@ -361,8 +369,11 @@ g_2048_grid_new (gsize     size,
 
     priv->size = size;
     priv->empty = size*size;
+    priv->target = target;
 
     priv->score_label = score_label;
+
+    priv->debug = debug;
 
     for (gsize row = 0; row < size; ++row)
     {
