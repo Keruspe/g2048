@@ -39,8 +39,6 @@ typedef struct
     gboolean  won;
 
     GtkLabel *score_label;
-
-    gboolean  debug;
 } G2048GridPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (G2048Grid, g_2048_grid, GTK_TYPE_GRID)
@@ -258,44 +256,6 @@ g_2048_grid_handle (G2048Grid *self,
     return did_something;
 }
 
-static void
-g_2048_grid_debug_print (const   G2048Grid *self,
-                         guint32 key)
-{
-    G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
-
-    if (!priv->debug)
-        return;
-
-    GtkGrid *grid = GTK_GRID (self);
-
-    printf ("\n");
-    switch (key)
-    {
-    case GDK_KEY_Up:
-        printf ("Up");
-        break;
-    case GDK_KEY_Down:
-        printf ("Down");
-        break;
-    case GDK_KEY_Left:
-        printf ("Left");
-        break;
-    case GDK_KEY_Right:
-        printf ("Right");
-        break;
-    default:
-        g_assert_not_reached ();
-    }
-    printf ("\n");
-    for (gsize row = 0; row < priv->size; ++row)
-    {
-        for (gsize col = 0; col < priv->size; ++col)
-            printf ("%4d ", g_2048_tile_get_value (G_2048_TILE (gtk_grid_get_child_at (grid, col, row))));
-        printf ("\n");
-    }
-}
-
 G_2048_VISIBLE gboolean
 g_2048_grid_on_key (G2048Grid *self,
                     guint32    key)
@@ -323,8 +283,6 @@ g_2048_grid_on_key (G2048Grid *self,
 
     if (did_something)
         g_2048_grid_add_random_tile (self);
-
-    g_2048_grid_debug_print (self, key);
 
     return did_something;
 }
@@ -387,15 +345,12 @@ g_2048_grid_init (G2048Grid *self)
     priv->score = 0;
     priv->target = 2048;
     priv->won = FALSE;
-
-    priv->debug = FALSE;
 }
 
 G_2048_VISIBLE GtkWidget *
 g_2048_grid_new (gsize     size,
                  guint32   target,
-                 GtkLabel *score_label,
-                 gboolean  debug)
+                 GtkLabel *score_label)
 {
     GtkWidget *self = gtk_widget_new (G_2048_TYPE_GRID,
                                       "column-homogeneous", TRUE,
@@ -413,8 +368,6 @@ g_2048_grid_new (gsize     size,
     priv->target = target;
 
     priv->score_label = score_label;
-
-    priv->debug = debug;
 
     for (gsize row = 0; row < size; ++row)
     {
