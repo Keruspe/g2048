@@ -36,7 +36,7 @@ typedef struct
     gchar  *theme;
 } G2048TilePrivate;
 
-G_DEFINE_TYPE_WITH_PRIVATE (G2048Tile, g_2048_tile, GTK_TYPE_LABEL)
+G_DEFINE_TYPE_WITH_PRIVATE (G2048Tile, g_2048_tile, GTK_TYPE_IMAGE)
 
 static void
 g_2048_tile_update (G2048Tile *self)
