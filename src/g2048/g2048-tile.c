@@ -19,14 +19,16 @@
 
 #include "g2048-tile.h"
 
+#define DEFAULT_THEME "default"
+
 struct _G2048Tile
 {
-    GtkLabel parent_instance;
+    GtkImage parent_instance;
 };
 
 struct _G2048TileClass
 {
-    GtkLabelClass parent_class;
+    GtkImageClass parent_class;
 };
 
 typedef struct
@@ -36,57 +38,13 @@ typedef struct
 
 G_DEFINE_TYPE_WITH_PRIVATE (G2048Tile, g_2048_tile, GTK_TYPE_LABEL)
 
-static const gchar *
-value_to_color_name (guint32 value)
-{
-    switch (value)
-    {
-    case 0:
-        return "Grey";
-    case 2:
-        return "LightGrey";
-    case 4:
-        return "Lime";
-    case 8:
-        return "Yellow";
-    case 16:
-        return "Orange";
-    case 32:
-        return "Brown";
-    case 64:
-        return "Pink";
-    case 128:
-        return "Red";
-    case 256:
-        return "Magenta";
-    case 512:
-        return "Cyan";
-    case 1024:
-        return "Silver";
-    case 2048:
-        return "Gold";
-    default:
-        g_assert_not_reached ();
-    }
-}
-
 static void
-g_2048_tile_update (G2048Tile *self)
+g_2048_tile_update (G2048Tile *self,
+                    guint32    value)
 {
-    G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
-
-    if (priv->value)
-    {
-        gchar *txt = g_strdup_printf ("%u", priv->value);
-        gtk_label_set_text (GTK_LABEL (self), txt);
-        g_free (txt);
-    }
-    else
-        gtk_label_set_text (GTK_LABEL (self), "");
-
-    GdkRGBA color;
-    gdk_rgba_parse (&color, value_to_color_name (priv->value));
-    gtk_widget_override_background_color (GTK_WIDGET (self), GTK_STATE_FLAG_NORMAL, &color);
+    gchar *file = g_strdup_printf (DATADIR "/" PACKAGE_NAME "/%s/%u.png", DEFAULT_THEME, value);
+    gtk_image_set_from_file (GTK_IMAGE (self), file);
+    g_free (file);
 }
 
 G_2048_VISIBLE guint32
@@ -102,11 +60,9 @@ g_2048_tile_set_value (G2048Tile *self,
                        guint32    val)
 {
     g_return_if_fail (G_2048_IS_TILE (self));
-
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
-
     priv->value = val;
-    g_2048_tile_update (self);
+    g_2048_tile_update (self, val);
 }
 
 static void
@@ -118,12 +74,7 @@ static void
 g_2048_tile_init (G2048Tile *self)
 {
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
-
     priv->value = 0;
-
-    GdkRGBA color;
-    gdk_rgba_parse (&color, "black");
-    gtk_widget_override_color (GTK_WIDGET (self), GTK_STATE_FLAG_NORMAL, &color);
 }
 
 G_2048_VISIBLE GtkWidget *
@@ -136,6 +87,6 @@ g_2048_tile_new (guint32 val)
     G2048Tile *tile = (G2048Tile *) self;
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (tile);
     priv->value = val;
-    g_2048_tile_update (tile);
+    g_2048_tile_update (tile, val);
     return self;
 }

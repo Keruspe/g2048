@@ -19,10 +19,11 @@ ACLOCAL_AMFLAGS  = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 AM_DISTCHECK_CONFIGURE_FLAGS = $(NULL)
 
-AM_CPPFLAGS =                \
-	-include config.h    \
-	-Isrc/g2048          \
-	-DG_2048_COMPILATION \
+AM_CPPFLAGS =                    \
+	-include config.h        \
+	-Isrc/g2048              \
+	-DG_2048_COMPILATION     \
+	-DDATADIR=\"${datadir}\" \
 	$(NULL)
 
 AM_CFLAGS =            \
