@@ -72,11 +72,52 @@ show_win (GApplication *application)
         gtk_window_present (wins->data);
 }
 
+static gboolean
+path_exists (const gchar *path)
+{
+    gboolean ret = FALSE;
+    GFile *file = g_file_new_for_path (path);
+    if (g_file_query_exists (file, NULL))
+        ret = TRUE;
+    g_object_unref (file);
+    return ret;
+}
+
+static gchar *
+get_theme_path (const gchar *theme)
+{
+    gchar *theme_path = g_build_filename (g_get_user_data_dir (), PACKAGE_NAME "/themes/", theme, NULL);
+    if (path_exists (theme_path))
+        return theme_path;
+    g_free (theme_path);
+    theme_path = g_build_filename (DATADIR "/" PACKAGE_NAME "/themes/", theme, NULL);
+    if (path_exists (theme_path))
+        return theme_path;
+    g_free (theme_path);
+    return NULL;
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
     gtk_init (&argc, &argv);
     g_object_set (gtk_settings_get_default (), "gtk-application-prefer-dark-theme", TRUE, NULL);
+
+    gsize size = DEFAULT_SIZE;
+    guint32 target = DEFAULT_TARGET;
+    const gchar *theme = DEFAULT_THEME;
+
+    GOptionEntry options[] = {
+        { "size",   's',  0, G_OPTION_ARG_INT,    &size,   "The size of the grid", "4"           },
+        { "target", '\0', 0, G_OPTION_ARG_INT,    &target, "The tile to reach",    "2048"        },
+        { "theme",  't',  0, G_OPTION_ARG_STRING, &theme,  "The theme to use",     DEFAULT_THEME },
+        { NULL,     '\0', 0, G_OPTION_ARG_NONE,   NULL,    NULL,                   NULL          }
+    };
+    GOptionContext *ctx = g_option_context_new ("foobar");
+    g_option_context_add_main_entries (ctx, options, NULL);
+    g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
+    g_option_context_parse (ctx, &argc, &argv, NULL);
+    g_option_context_free (ctx);
 
     GtkApplication *app = gtk_application_new ("org.gnome.g2048", G_APPLICATION_FLAGS_NONE);
     GApplication *gapp = G_APPLICATION (app);
@@ -96,28 +137,14 @@ main (gint argc, gchar *argv[])
         return EXIT_SUCCESS;
     }
 
-    gsize size = DEFAULT_SIZE;
-    guint32 target = DEFAULT_TARGET;
-    const gchar *theme = DEFAULT_THEME;
-
-    GOptionEntry options[] = {
-        { "size",   's',  0, G_OPTION_ARG_INT,    &size,   "The size of the grid", "4"           },
-        { "target", '\0', 0, G_OPTION_ARG_INT,    &target, "The tile to reach",    "2048"        },
-        { "theme",  't',  0, G_OPTION_ARG_STRING, &theme,  "The theme to use",     DEFAULT_THEME },
-        { NULL,     '\0', 0, G_OPTION_ARG_NONE,   NULL,    NULL,                   NULL          }
-    };
-    GOptionContext *ctx = g_option_context_new ("foobar");
-    g_option_context_add_main_entries (ctx, options, NULL);
-    g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
-    g_option_context_parse (ctx, &argc, &argv, NULL);
-    g_option_context_free (ctx);
-
-    gchar *theme_dir_s = g_strdup_printf (DATADIR "/" PACKAGE_NAME "/themes/%s", theme);
-    GFile *theme_dir = g_file_new_for_path (theme_dir_s);
-    if (! g_file_query_exists (theme_dir, NULL))
-        theme = DEFAULT_THEME;
-    g_object_unref (theme_dir);
-    g_free (theme_dir_s);
+    gchar *theme_path = get_theme_path (theme);
+    if (!theme_path)
+        theme_path = get_theme_path (DEFAULT_THEME);
+    if (!theme_path)
+    {
+        g_critical ("No theme found");
+        exit (EXIT_FAILURE);
+    }
 
     GtkWidget *score_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
     GtkBox *hbox = GTK_BOX (score_box);
@@ -135,8 +162,10 @@ main (gint argc, gchar *argv[])
 
     GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     GtkBox *vbox = GTK_BOX (box);
-    gtk_box_pack_start (vbox, g_2048_grid_new (size, target, theme, label), TRUE, TRUE, 0);
+    gtk_box_pack_start (vbox, g_2048_grid_new (size, target, theme_path, label), TRUE, TRUE, 0);
     gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
+
+    g_free (theme_path);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
                                      "application",     app,
