@@ -44,7 +44,8 @@ guint32 g_2048_tile_get_value (const G2048Tile *self);
 void g_2048_tile_set_value (G2048Tile *self,
                             guint32    val);
 
-GtkWidget *g_2048_tile_new (guint32 val);
+GtkWidget *g_2048_tile_new (guint32      val,
+                            const gchar *theme);
 
 G_END_DECLS
 

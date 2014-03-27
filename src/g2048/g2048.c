@@ -23,6 +23,7 @@
 
 #define SIZE   4
 #define TARGET 2048
+#define THEME  "default"
 
 __attribute__((noreturn)) static void
 end (GtkWidget   *win,
@@ -104,7 +105,7 @@ main (gint argc, gchar *argv[])
 
     GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     GtkBox *vbox = GTK_BOX (box);
-    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, TARGET, label), TRUE, TRUE, 0);
+    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, TARGET, THEME, label), TRUE, TRUE, 0);
     gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,

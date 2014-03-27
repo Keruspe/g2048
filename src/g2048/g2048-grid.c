@@ -349,10 +349,13 @@ g_2048_grid_init (G2048Grid *self)
 }
 
 G_2048_VISIBLE GtkWidget *
-g_2048_grid_new (gsize     size,
-                 guint32   target,
-                 GtkLabel *score_label)
+g_2048_grid_new (gsize        size,
+                 guint32      target,
+                 const gchar *theme,
+                 GtkLabel    *score_label)
 {
+    g_return_val_if_fail (theme, NULL);
+
     GtkWidget *self = gtk_widget_new (G_2048_TYPE_GRID,
                                       "column-homogeneous", TRUE,
                                       "row-homogeneous",    TRUE,
@@ -373,11 +376,11 @@ g_2048_grid_new (gsize     size,
     for (gsize row = 0; row < size; ++row)
     {
         GtkWidget *tile, *previous_tile;
-        gtk_grid_attach (g, (tile = g_2048_tile_new (0)), 0, row, 1, 1);
+        gtk_grid_attach (g, (tile = g_2048_tile_new (0, theme)), 0, row, 1, 1);
         for (gsize col = 1; col < size; ++col)
         {
             previous_tile = tile;
-            gtk_grid_attach_next_to (g, (tile = g_2048_tile_new (0)), previous_tile, GTK_POS_RIGHT, 1, 1);
+            gtk_grid_attach_next_to (g, (tile = g_2048_tile_new (0, theme)), previous_tile, GTK_POS_RIGHT, 1, 1);
         }
     }
 

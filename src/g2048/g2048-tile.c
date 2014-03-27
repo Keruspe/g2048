@@ -19,8 +19,6 @@
 
 #include "g2048-tile.h"
 
-#define DEFAULT_THEME "default"
-
 struct _G2048Tile
 {
     GtkImage parent_instance;
@@ -34,15 +32,17 @@ struct _G2048TileClass
 typedef struct
 {
     guint32 value;
+
+    gchar  *theme;
 } G2048TilePrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (G2048Tile, g_2048_tile, GTK_TYPE_LABEL)
 
 static void
-g_2048_tile_update (G2048Tile *self,
-                    guint32    value)
+g_2048_tile_update (G2048Tile *self)
 {
-    gchar *file = g_strdup_printf (DATADIR "/" PACKAGE_NAME "/%s/%u.png", DEFAULT_THEME, value);
+    G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
+    gchar *file = g_strdup_printf (DATADIR "/" PACKAGE_NAME "/%s/%u.png", priv->theme, priv->value);
     gtk_image_set_from_file (GTK_IMAGE (self), file);
     g_free (file);
 }
@@ -62,12 +62,21 @@ g_2048_tile_set_value (G2048Tile *self,
     g_return_if_fail (G_2048_IS_TILE (self));
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (self);
     priv->value = val;
-    g_2048_tile_update (self, val);
+    g_2048_tile_update (self);
 }
 
 static void
-g_2048_tile_class_init (G2048TileClass *klass G_GNUC_UNUSED)
+g_2048_tile_finalize (GObject *object)
 {
+    G2048TilePrivate *priv = g_2048_tile_get_instance_private ((G2048Tile *) object);
+    g_clear_pointer (&priv->theme, g_free);
+    G_OBJECT_CLASS (g_2048_tile_parent_class)->finalize (object);
+}
+
+static void
+g_2048_tile_class_init (G2048TileClass *klass)
+{
+    G_OBJECT_CLASS (klass)->finalize = g_2048_tile_finalize;
 }
 
 static void
@@ -78,8 +87,11 @@ g_2048_tile_init (G2048Tile *self)
 }
 
 G_2048_VISIBLE GtkWidget *
-g_2048_tile_new (guint32 val)
+g_2048_tile_new (guint32      val,
+                 const gchar *theme)
 {
+    g_return_val_if_fail (theme, NULL);
+
     GtkWidget *self = gtk_widget_new (G_2048_TYPE_TILE,
                                       "height-request", 100,
                                       "width-request",  100,
@@ -87,6 +99,7 @@ g_2048_tile_new (guint32 val)
     G2048Tile *tile = (G2048Tile *) self;
     G2048TilePrivate *priv = g_2048_tile_get_instance_private (tile);
     priv->value = val;
-    g_2048_tile_update (tile, val);
+    priv->theme = g_strdup (theme);
+    g_2048_tile_update (tile);
     return self;
 }

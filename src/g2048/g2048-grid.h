@@ -45,9 +45,10 @@ gboolean g_2048_grid_on_key (G2048Grid *self,
 gboolean g_2048_grid_is_won  (const G2048Grid *self);
 gboolean g_2048_grid_is_lost (const G2048Grid *self);
 
-GtkWidget *g_2048_grid_new (gsize     size,
-                            guint32   target,
-                            GtkLabel *score_label);
+GtkWidget *g_2048_grid_new (gsize        size,
+                            guint32      target,
+                            const gchar *theme,
+                            GtkLabel    *score_label);
 
 G_END_DECLS
 
