@@ -65,6 +65,13 @@ on_key (GtkWidget   *widget,
     return FALSE;
 }
 
+static void
+show_win (GApplication *application)
+{
+    for (GList *wins = gtk_application_get_windows (GTK_APPLICATION (application)); wins; wins = g_list_next (wins))
+        gtk_window_present (wins->data);
+}
+
 gint
 main (gint argc, gchar *argv[])
 {
@@ -74,7 +81,7 @@ main (gint argc, gchar *argv[])
     GtkApplication *app = gtk_application_new ("org.gnome.g2048", G_APPLICATION_FLAGS_NONE);
     GApplication *gapp = G_APPLICATION (app);
     GError *error = NULL;
-    G_APPLICATION_GET_CLASS (gapp)->activate = NULL;
+    G_APPLICATION_GET_CLASS (gapp)->activate = show_win;
 
     g_application_register (gapp, NULL, &error);
     if (error)
