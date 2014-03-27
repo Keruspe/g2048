@@ -21,9 +21,9 @@
 
 #include <stdlib.h>
 
-#define SIZE   4
-#define TARGET 2048
-#define THEME  "default"
+#define DEFAULT_SIZE   4
+#define DEFAULT_TARGET 2048
+#define DEFAULT_THEME  "default"
 
 __attribute__((noreturn)) static void
 end (GtkWidget   *win,
@@ -96,7 +96,21 @@ main (gint argc, gchar *argv[])
         return EXIT_SUCCESS;
     }
 
-    const gchar *theme = (argc > 1) ? argv[1] : THEME;
+    gsize size = DEFAULT_SIZE;
+    guint32 target = DEFAULT_TARGET;
+    const gchar *theme = DEFAULT_THEME;
+
+    GOptionEntry options[] = {
+        { "size",   's',  0, G_OPTION_ARG_INT,    &size,   "The size of the grid", "4"           },
+        { "target", '\0', 0, G_OPTION_ARG_INT,    &target, "The tile to reach",    "2048"        },
+        { "theme",  't',  0, G_OPTION_ARG_STRING, &theme,  "The theme to use",     DEFAULT_THEME },
+        { NULL,     '\0', 0, G_OPTION_ARG_NONE,   NULL,    NULL,                   NULL          }
+    };
+    GOptionContext *ctx = g_option_context_new ("foobar");
+    g_option_context_add_main_entries (ctx, options, NULL);
+    g_option_context_add_group (ctx, gtk_get_option_group (TRUE));
+    g_option_context_parse (ctx, &argc, &argv, NULL);
+    g_option_context_free (ctx);
 
     GtkWidget *score_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
     GtkBox *hbox = GTK_BOX (score_box);
@@ -114,7 +128,7 @@ main (gint argc, gchar *argv[])
 
     GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
     GtkBox *vbox = GTK_BOX (box);
-    gtk_box_pack_start (vbox, g_2048_grid_new (SIZE, TARGET, theme, label), TRUE, TRUE, 0);
+    gtk_box_pack_start (vbox, g_2048_grid_new (size, target, theme, label), TRUE, TRUE, 0);
     gtk_box_pack_end (vbox, score_box, TRUE, TRUE, 20);
 
     GtkWidget *win = gtk_widget_new (GTK_TYPE_APPLICATION_WINDOW,
