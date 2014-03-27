@@ -52,7 +52,7 @@ value_to_color_name (guint32 value)
     case 16:
         return "Orange";
     case 32:
-        return "Maroon";
+        return "Brown";
     case 64:
         return "Pink";
     case 128:
