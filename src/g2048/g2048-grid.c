@@ -183,6 +183,7 @@ g_2048_grid_post_merge (G2048GridPrivate *priv,
                     val *= 2;
                     g_2048_grid_private_update_score (priv, val);
                     g_2048_tile_set_value (_next, 0);
+                    ++priv->empty;
                 }
             }
             g_2048_tile_set_value (tile, val);
