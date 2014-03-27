@@ -258,6 +258,44 @@ g_2048_grid_handle (G2048Grid *self,
     return did_something;
 }
 
+static void
+g_2048_grid_debug_print (const   G2048Grid *self,
+                         guint32 key)
+{
+    G2048GridPrivate *priv = g_2048_grid_get_instance_private ((G2048Grid *) self);
+
+    if (!priv->debug)
+        return;
+
+    GtkGrid *grid = GTK_GRID (self);
+
+    printf ("\n");
+    switch (key)
+    {
+    case GDK_KEY_Up:
+        printf ("Up");
+        break;
+    case GDK_KEY_Down:
+        printf ("Down");
+        break;
+    case GDK_KEY_Left:
+        printf ("Left");
+        break;
+    case GDK_KEY_Right:
+        printf ("Right");
+        break;
+    default:
+        g_assert_not_reached ();
+    }
+    printf ("\n");
+    for (gsize row = 0; row < priv->size; ++row)
+    {
+        for (gsize col = 0; col < priv->size; ++col)
+            printf ("%4d ", g_2048_tile_get_value (G_2048_TILE (gtk_grid_get_child_at (grid, col, row))));
+        printf ("\n");
+    }
+}
+
 G_2048_VISIBLE gboolean
 g_2048_grid_on_key (G2048Grid *self,
                     guint32    key)
@@ -285,6 +323,9 @@ g_2048_grid_on_key (G2048Grid *self,
 
     if (did_something)
         g_2048_grid_add_random_tile (self);
+
+    g_2048_grid_debug_print (self, key);
+
     return did_something;
 }
 
