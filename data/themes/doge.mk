@@ -18,17 +18,17 @@
 
 dogethemedir = $(themesdir)/doge
 
-dogetheme_DATA = \
-	data/themes/doge/0
-	data/themes/doge/2
-	data/themes/doge/4
-	data/themes/doge/8
-	data/themes/doge/16
-	data/themes/doge/32
-	data/themes/doge/64
-	data/themes/doge/128
-	data/themes/doge/256
-	data/themes/doge/512
-	data/themes/doge/1024
-	data/themes/doge/2048
+dogetheme_DATA =              \
+	data/themes/doge/0    \
+	data/themes/doge/2    \
+	data/themes/doge/4    \
+	data/themes/doge/8    \
+	data/themes/doge/16   \
+	data/themes/doge/32   \
+	data/themes/doge/64   \
+	data/themes/doge/128  \
+	data/themes/doge/256  \
+	data/themes/doge/512  \
+	data/themes/doge/1024 \
+	data/themes/doge/2048 \
 	$(NULL)

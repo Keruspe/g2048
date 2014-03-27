@@ -18,17 +18,17 @@
 
 defaultthemedir = $(themesdir)/default
 
-defaulttheme_DATA = \
-	data/themes/default/0
-	data/themes/default/2
-	data/themes/default/4
-	data/themes/default/8
-	data/themes/default/16
-	data/themes/default/32
-	data/themes/default/64
-	data/themes/default/128
-	data/themes/default/256
-	data/themes/default/512
-	data/themes/default/1024
-	data/themes/default/2048
+defaulttheme_DATA =              \
+	data/themes/default/0    \
+	data/themes/default/2    \
+	data/themes/default/4    \
+	data/themes/default/8    \
+	data/themes/default/16   \
+	data/themes/default/32   \
+	data/themes/default/64   \
+	data/themes/default/128  \
+	data/themes/default/256  \
+	data/themes/default/512  \
+	data/themes/default/1024 \
+	data/themes/default/2048 \
 	$(NULL)
