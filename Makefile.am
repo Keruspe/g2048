@@ -52,9 +52,12 @@ noinst_PROGRAMS= \
 	$(TESTS) \
 	$(NULL)
 
+themesdir = $(pkgdatadir)/themes
+
 # Real stuff goes in these subfiles
 
 include src/g2048.mk
+include data/themes/default.mk
 
 # Maintainance stuff
 
