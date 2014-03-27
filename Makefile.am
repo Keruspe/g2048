@@ -58,6 +58,7 @@ themesdir = $(pkgdatadir)/themes
 
 include src/g2048.mk
 include data/themes/default.mk
+include data/themes/doge.mk
 
 # Maintainance stuff
 
